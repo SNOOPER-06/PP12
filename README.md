@@ -93,7 +93,54 @@ In this exercise you will:
 #### Reflection Questions
 
 1. **What steps are required to open an X11 window and receive events?**
+
+<summuray>
+Step 1-Connect to the X server
+Display *dpy = XOpenDisplay(NULL);
+
+This connects the program to the X server.
+
+Step 2-Get the default screen
+int screen = DefaultScreen(dpy);
+
+Step 3-Create a window
+Window win = XCreateSimpleWindow(...);
+
+You define its size, position, colors, and borders here.
+
+Step 4-Select input events you want to handle
+XSelectInput(dpy, win, ExposureMask | KeyPressMask);
+
+You must tell X11 which events your program wants to receive (e.g., Expose, KeyPress).
+
+Step 5-Map (show) the window
+XMapWindow(dpy, win);
+
+Step 6-Create a graphics context (GC) for drawing
+GC gc = XCreateGC(dpy, win, 0, NULL);
+
+Step 7-Event loop: wait for and handle events
+for(;;) {
+    XEvent e;
+    XNextEvent(dpy, &e);
+    }
+</summuray>
+
 2. **How does the `Expose` event trigger your drawing code?**
+ 
+<summuray>
+An Expose event is sent when part of the window needs to be redrawn, e.g.:
+    The window is first shown
+    The window was covered and is now uncovered
+    The user resized the window
+In the code:
+if (e.type == Expose) {
+    XDrawRectangle(dpy, win, gc, 50, 50, 200, 100);
+}
+    This means when the window needs to be redrawn, your program draws a rectangle again.
+    If you didn’t handle Expose, the rectangle might disappear when the window is resized or uncovered.
+So the Expose event triggers your drawing code by acting as a signal to redraw the contents of the window.
+</summuray>
 
 ---
 
@@ -153,7 +200,37 @@ In this exercise you will:
 #### Reflection Questions
 
 1. **How does GTK’s signal-and-callback mechanism differ from X11’s event loop?**
+   
+<summuray>
+GTK+ (signal-and-callback):
+    High-level abstraction built on top of X11
+    Uses a signal system (e.g., "clicked", "destroy") that you connect to callback functions
+    Internally handles events and dispatches them to the appropriate widget/function
+    Code is cleaner and more modular 
+ X11 (event loop):
+    Low-level manual handling of events
+    You write your own event loop and check event types directly:
+XEvent e;
+XNextEvent(display, &e);
+if (e.type == Expose) { ... }
+You must manually handle drawing, resizing, key presses, etc.
+</summuray>
+
+
 2. **Why use `pkg-config` when compiling GTK applications?**
+   
+<summuray>
+pkg-config is a build helper tool that:
+    Automatically provides the correct compiler flags for GTK (or any library)
+    Includes:
+        -I paths for header files
+        -L paths for libraries
+        -l flags to link the right .so files
+Without it:
+    You’d have to manually find and type a long list of flags
+    It would break on different systems or GTK versions
+Conclusion: pkg-config ensures portable, maintainable, error-free compilation of GTK apps.
+</summuray>
 
 ---
 
